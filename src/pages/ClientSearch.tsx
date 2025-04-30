@@ -27,7 +27,7 @@ import {
 const ClientSearch = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
   const [filteredClients, setFilteredClients] = useState<Client[]>(mockClients);
 
   const applyFilters = () => {
@@ -44,7 +44,7 @@ const ClientSearch = () => {
       );
     }
     
-    if (statusFilter) {
+    if (statusFilter && statusFilter !== 'all') {
       results = results.filter(client => client.status === statusFilter);
     }
     
@@ -141,7 +141,7 @@ const ClientSearch = () => {
                 </div>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Statuses</SelectItem>
+                <SelectItem value="all">All Statuses</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
                 <SelectItem value="complete">Complete</SelectItem>
                 <SelectItem value="flagged">Flagged</SelectItem>

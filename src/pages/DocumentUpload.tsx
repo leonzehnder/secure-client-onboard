@@ -28,6 +28,7 @@ const DocumentUpload = () => {
   const [expiryDate, setExpiryDate] = useState('');
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [selectedClientId, setSelectedClientId] = useState<string>('default');
 
   useEffect(() => {
     // Simulate API fetch
@@ -142,11 +143,12 @@ const DocumentUpload = () => {
                 ) : (
                   <div>
                     <Label>Client</Label>
-                    <Select>
+                    <Select value={selectedClientId} onValueChange={setSelectedClientId}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select client" />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="default" disabled>Select a client</SelectItem>
                         {mockClients.map(client => (
                           <SelectItem 
                             key={client.id} 

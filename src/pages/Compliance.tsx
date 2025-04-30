@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { mockClients } from '../data/mockData';
@@ -43,6 +42,7 @@ const Compliance = () => {
   const [riskRating, setRiskRating] = useState<'low' | 'medium' | 'high'>('medium');
   const [notes, setNotes] = useState('');
   const [progress, setProgress] = useState(0);
+  const [selectedClientId, setSelectedClientId] = useState<string>('default');
 
   useEffect(() => {
     // Simulate API fetch
@@ -208,11 +208,12 @@ const Compliance = () => {
           ) : (
             <div className="mb-6">
               <Label>Client</Label>
-              <Select>
+              <Select value={selectedClientId} onValueChange={setSelectedClientId}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select client" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="default" disabled>Select a client</SelectItem>
                   {mockClients.map(client => (
                     <SelectItem 
                       key={client.id} 
