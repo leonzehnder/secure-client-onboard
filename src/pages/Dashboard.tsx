@@ -3,11 +3,29 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { mockDashboardStats, mockClients, mockActivityLogs } from '../data/mockData';
-import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from 'recharts';
-import { FileText, User, AlertTriangle, CheckCircle, Clock } from "lucide-react";
 import { format, parseISO } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { User, Clock, CheckCircle, AlertTriangle, FileText } from 'lucide-react';
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
+} from "@/components/ui/chart";
+import {
+  Bar,
+  BarChart,
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+} from "recharts";
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
@@ -19,6 +37,12 @@ const Dashboard = () => {
     { name: 'Flagged', value: mockDashboardStats.flaggedClients, color: '#FF6B6B' },
   ];
 
+  const statusConfig = {
+    pending: { label: "Pending", color: "#FFB347" },
+    completed: { label: "Completed", color: "#4CAF50" },
+    flagged: { label: "Flagged", color: "#FF6B6B" }
+  };
+
   const documentTypeData = mockClients.flatMap(client => client.documents).reduce((acc, doc) => {
     const type = doc.type;
     const existing = acc.find(item => item.name === type);
@@ -29,6 +53,13 @@ const Dashboard = () => {
     }
     return acc;
   }, [] as { name: string; count: number }[]);
+
+  const documentConfig = {
+    passport: { label: "Passport", color: "#4361EE" },
+    idCard: { label: "ID Card", color: "#3A86FF" },
+    utilityBill: { label: "Utility Bill", color: "#4EA8DE" },
+    bankStatement: { label: "Bank Statement", color: "#56CFE1" }
+  };
 
   const recentClients = [...mockClients].sort((a, b) => 
     new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
@@ -141,28 +172,70 @@ const Dashboard = () => {
                   Overview of client onboarding status
                 </CardDescription>
               </CardHeader>
-              <CardContent className="pl-2">
-                <ResponsiveContainer width="100%" height={300}>
+              <CardContent className="pt-2">
+                <ChartContainer
+                  config={statusConfig}
+                  className="aspect-[4/2]"
+                >
                   <BarChart
                     data={statusData}
                     margin={{
-                      top: 20,
-                      right: 30,
-                      left: 20,
-                      bottom: 5,
+                      top: 15,
+                      right: 10,
+                      left: 10,
+                      bottom: 20,
                     }}
                   >
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="value" name="Clients">
+                    <XAxis 
+                      dataKey="name" 
+                      tick={{ fontSize: 12 }}
+                      tickLine={false}
+                      axisLine={{ stroke: "#e5e7eb", strokeWidth: 1 }}
+                    />
+                    <YAxis 
+                      tick={{ fontSize: 12 }}
+                      tickLine={false}
+                      axisLine={{ stroke: "#e5e7eb", strokeWidth: 1 }}
+                      tickFormatter={(value) => `${value}`}
+                    />
+                    <Bar
+                      dataKey="value"
+                      radius={[4, 4, 0, 0]}
+                      className="fill-primary"
+                    >
                       {statusData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
+                        <Cell 
+                          key={`cell-${index}`} 
+                          fill={entry.color} 
+                          className="cursor-pointer hover:opacity-80"
+                        />
                       ))}
                     </Bar>
+                    <ChartTooltip
+                      content={({ active, payload }) => {
+                        if (!active || !payload) return null;
+                        return (
+                          <div className="rounded-md border border-slate-100 bg-white p-2 shadow-md">
+                            <div className="grid grid-cols-2 gap-2">
+                              <div className="flex items-center gap-1 text-slate-500">
+                                <div
+                                  className="h-3 w-3 rounded"
+                                  style={{
+                                    background: payload[0].color,
+                                  }}
+                                />
+                                <p className="font-medium">{payload[0].name}</p>
+                              </div>
+                              <p className="font-medium text-right">
+                                {payload[0].value}
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      }}
+                    />
                   </BarChart>
-                </ResponsiveContainer>
+                </ChartContainer>
               </CardContent>
             </Card>
             
@@ -173,27 +246,75 @@ const Dashboard = () => {
                   Breakdown of document categories
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={250}>
-                  <PieChart>
+              <CardContent className="pt-2">
+                <ChartContainer
+                  config={documentConfig}
+                  className="aspect-[4/3]"
+                >
+                  <PieChart
+                    margin={{
+                      top: 0,
+                      right: 0,
+                      left: 0,
+                      bottom: 0,
+                    }}
+                  >
                     <Pie
                       data={documentTypeData}
                       cx="50%"
                       cy="50%"
                       labelLine={false}
                       outerRadius={80}
-                      fill="#8884d8"
                       dataKey="count"
                       nameKey="name"
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                      label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
+                      stroke="#fff"
+                      strokeWidth={2}
                     >
-                      {documentTypeData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={`hsl(${index * 60}, 70%, 60%)`} />
-                      ))}
+                      {documentTypeData.map((entry, index) => {
+                        const docType = entry.name as keyof typeof documentConfig;
+                        return (
+                          <Cell 
+                            key={`cell-${index}`} 
+                            fill={documentConfig[docType]?.color || `hsl(${index * 45}, 70%, 60%)`}
+                            className="cursor-pointer hover:opacity-80"
+                          />
+                        )
+                      })}
                     </Pie>
-                    <Tooltip />
+                    <ChartTooltip
+                      content={({ active, payload }) => {
+                        if (!active || !payload) return null;
+                        
+                        const data = payload[0].payload;
+                        const docType = data.name as keyof typeof documentConfig;
+                        const color = documentConfig[docType]?.color || "#888";
+                        
+                        return (
+                          <div className="rounded-md border border-slate-100 bg-white p-2 shadow-md">
+                            <div className="grid grid-cols-2 gap-4">
+                              <div className="flex items-center gap-1 text-slate-500">
+                                <div
+                                  className="h-3 w-3 rounded"
+                                  style={{
+                                    background: color,
+                                  }}
+                                />
+                                <p className="font-medium">{data.name}</p>
+                              </div>
+                              <p className="font-medium text-right">{data.count}</p>
+                            </div>
+                          </div>
+                        );
+                      }}
+                    />
+                    <ChartLegend 
+                      verticalAlign="bottom" 
+                      height={36} 
+                      content={<ChartLegendContent nameKey="name" />}
+                    />
                   </PieChart>
-                </ResponsiveContainer>
+                </ChartContainer>
               </CardContent>
             </Card>
           </div>
