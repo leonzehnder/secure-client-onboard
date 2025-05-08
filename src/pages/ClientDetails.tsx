@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { mockClients } from '../data/mockData';
@@ -269,6 +270,8 @@ const ClientDetails = () => {
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {doc.verificationIssues && doc.verificationIssues.map((issue, issueIndex) => {
+                      // This is the line causing the TypeScript error
+                      // We need to properly construct the field path for react-hook-form
                       const fieldPath = `documentCorrections.${docIndex}.corrections.${issue.field}`;
                       
                       return (
@@ -278,10 +281,19 @@ const ClientDetails = () => {
                           </Label>
                           <div className="flex items-center gap-2">
                             <div className="flex-1">
-                              <Input
-                                {...form.register(fieldPath)}
-                                defaultValue={issue.found}
-                                className="w-full"
+                              <FormField
+                                control={form.control}
+                                name={`documentCorrections.${docIndex}.corrections.${issue.field}` as const}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormControl>
+                                      <Input
+                                        {...field}
+                                        className="w-full"
+                                      />
+                                    </FormControl>
+                                  </FormItem>
+                                )}
                               />
                               <p className="text-xs text-muted-foreground mt-1">
                                 Expected: <span className="font-medium">{issue.expected}</span>
