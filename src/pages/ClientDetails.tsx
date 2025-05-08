@@ -1,7 +1,8 @@
+
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { mockClients } from '../data/mockData';
-import { Client, Document, VerificationIssue } from '../types';
+import { Client, Document, VerificationIssue, DocumentCorrection, DocumentCorrectionsFormValues } from '../types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from '@/components/ui/badge';
@@ -37,18 +38,6 @@ import {
   ChevronLeft,
   X
 } from 'lucide-react';
-
-// Define a more specific type for document corrections to help TypeScript
-interface DocumentCorrection {
-  documentId: string;
-  corrections: {
-    [field: string]: string;
-  };
-}
-
-interface DocumentCorrectionsFormValues {
-  documentCorrections: DocumentCorrection[];
-}
 
 const ClientDetails = () => {
   const { id } = useParams<{ id: string }>();

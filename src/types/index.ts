@@ -1,3 +1,4 @@
+
 export type ClientStatus = 'pending' | 'complete' | 'flagged';
 export type DocumentType = 'passport' | 'idCard' | 'drivingLicense' | 'utilityBill' | 'bankStatement' | 'taxDocument' | 'other';
 export type DocumentStatus = 'verified' | 'pending' | 'rejected';
@@ -96,5 +97,21 @@ export interface ClientFormData {
     postalCode: string;
     country: string;
   };
+  documents: {
+    type: DocumentType;
+    file: File | null;
+    description?: string;
+  }[];
   selectedContracts: string[];
+}
+
+export interface DocumentCorrection {
+  documentId: string;
+  corrections: {
+    [field: string]: string;
+  };
+}
+
+export interface DocumentCorrectionsFormValues {
+  documentCorrections: DocumentCorrection[];
 }

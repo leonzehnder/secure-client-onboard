@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { mockContracts } from '../data/mockContracts';
-import { ClientFormData } from '../types';
+import { ClientFormData, DocumentType } from '../types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -16,7 +16,29 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { CalendarIcon, UserPlus, Save, FileCheck } from 'lucide-react';
+import { 
+  CalendarIcon, 
+  UserPlus, 
+  Save, 
+  FileText, 
+  Upload,
+  File,
+  X,
+  Plus
+} from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+
+// Document types for selection
+const documentTypes: { value: DocumentType; label: string }[] = [
+  { value: 'passport', label: 'Passport' },
+  { value: 'idCard', label: 'ID Card' },
+  { value: 'drivingLicense', label: 'Driving License' },
+  { value: 'utilityBill', label: 'Utility Bill' },
+  { value: 'bankStatement', label: 'Bank Statement' },
+  { value: 'taxDocument', label: 'Tax Document' },
+  { value: 'other', label: 'Other Document' },
+];
 
 // Validation schema
 const formSchema = z.object({
@@ -33,6 +55,15 @@ const formSchema = z.object({
     postalCode: z.string().min(1, { message: 'Postal code is required' }),
     country: z.string().min(1, { message: 'Country is required' })
   }),
+  documents: z.array(
+    z.object({
+      type: z.enum(['passport', 'idCard', 'drivingLicense', 'utilityBill', 'bankStatement', 'taxDocument', 'other']),
+      file: z.any().refine(file => file instanceof File || file === null, {
+        message: 'Please upload a valid file',
+      }),
+      description: z.string().optional(),
+    })
+  ),
   selectedContracts: z.array(z.string()).min(1, { message: 'At least one contract must be selected' })
 });
 
@@ -58,6 +89,9 @@ const AddClient = () => {
         postalCode: '',
         country: ''
       },
+      documents: [
+        { type: 'passport', file: null, description: '' }
+      ],
       selectedContracts: mockContracts
         .filter(contract => contract.defaultSelected)
         .map(contract => contract.id)
@@ -86,6 +120,39 @@ const AddClient = () => {
     navigate('/clients');
   };
 
+  // Function to handle file selection
+  const handleFileChange = (index: number) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const fileValue = e.target.files[0];
+      const documents = form.getValues().documents;
+      documents[index].file = fileValue;
+      form.setValue(`documents.${index}.file`, fileValue);
+    }
+  };
+
+  // Add a new document upload field
+  const addDocument = () => {
+    const documents = form.getValues().documents;
+    form.setValue('documents', [
+      ...documents,
+      { type: 'other', file: null, description: '' }
+    ]);
+  };
+
+  // Remove a document upload field
+  const removeDocument = (index: number) => {
+    const documents = form.getValues().documents;
+    if (documents.length > 1) {
+      const updatedDocuments = documents.filter((_, i) => i !== index);
+      form.setValue('documents', updatedDocuments);
+    }
+  };
+
+  // Get an array of document field values
+  const { fields: documentFields } = form.control._formValues.documents
+    ? { fields: form.getValues().documents }
+    : { fields: [] };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -98,8 +165,9 @@ const AddClient = () => {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid grid-cols-2 w-full md:w-[400px]">
+            <TabsList className="grid grid-cols-3 w-full md:w-[600px]">
               <TabsTrigger value="personal">Personal Information</TabsTrigger>
+              <TabsTrigger value="documents">Documents</TabsTrigger>
               <TabsTrigger value="contracts">Contracts</TabsTrigger>
             </TabsList>
             
@@ -289,6 +357,137 @@ const AddClient = () => {
                 </Button>
                 <Button 
                   type="button" 
+                  onClick={() => setActiveTab('documents')}
+                >
+                  Next: Upload Documents
+                </Button>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="documents">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Client Documents</CardTitle>
+                  <CardDescription>
+                    Upload verification documents for the client
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="space-y-6">
+                    {documentFields.map((document, index) => (
+                      <div key={index} className="p-4 border rounded-md relative">
+                        {index > 0 && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="absolute top-2 right-2 h-8 w-8 p-0"
+                            onClick={() => removeDocument(index)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        )}
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <FormField
+                            control={form.control}
+                            name={`documents.${index}.type` as const}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Document Type</FormLabel>
+                                <Select 
+                                  onValueChange={field.onChange} 
+                                  defaultValue={field.value}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Select a document type" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {documentTypes.map(docType => (
+                                      <SelectItem key={docType.value} value={docType.value}>
+                                        {docType.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormItem>
+                            <FormLabel>Upload Document</FormLabel>
+                            <FormControl>
+                              <div className="flex items-center">
+                                <Input 
+                                  type="file" 
+                                  id={`document-${index}`}
+                                  onChange={handleFileChange(index)}
+                                  className="hidden"
+                                />
+                                <label 
+                                  htmlFor={`document-${index}`}
+                                  className="cursor-pointer flex items-center gap-2 border border-input bg-background hover:bg-accent hover:text-accent-foreground rounded-md px-4 py-2 text-sm font-medium"
+                                >
+                                  <Upload className="h-4 w-4" />
+                                  Choose File
+                                </label>
+                                <span className="ml-3 text-sm text-muted-foreground">
+                                  {form.watch(`documents.${index}.file`)?.name || "No file selected"}
+                                </span>
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        </div>
+                        
+                        <div className="mt-4">
+                          <FormField
+                            control={form.control}
+                            name={`documents.${index}.description` as const}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Description (Optional)</FormLabel>
+                                <FormControl>
+                                  <Textarea 
+                                    placeholder="Add notes about this document..."
+                                    className="resize-none"
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                    
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="flex items-center gap-2 w-full"
+                      onClick={addDocument}
+                    >
+                      <Plus className="h-4 w-4" />
+                      Add Another Document
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <div className="flex justify-between mt-6">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setActiveTab('personal')}
+                >
+                  Previous: Personal Information
+                </Button>
+                <Button 
+                  type="button" 
                   onClick={() => setActiveTab('contracts')}
                 >
                   Next: Select Contracts
@@ -344,7 +543,7 @@ const AddClient = () => {
                                       </FormDescription>
                                       {contract.requiresSignature && (
                                         <Badge variant="outline" className="mt-2">
-                                          <FileCheck className="h-3 w-3 mr-1" />
+                                          <FileText className="h-3 w-3 mr-1" />
                                           Requires Signature
                                         </Badge>
                                       )}
@@ -372,7 +571,7 @@ const AddClient = () => {
                 <Button 
                   type="button" 
                   variant="outline" 
-                  onClick={() => setActiveTab('personal')}
+                  onClick={() => setActiveTab('documents')}
                 >
                   Back
                 </Button>
