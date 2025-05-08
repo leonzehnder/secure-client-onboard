@@ -283,7 +283,7 @@ const ClientDetails = () => {
                             <div className="flex-1">
                               <FormField
                                 control={form.control}
-                                name={`documentCorrections.${docIndex}.corrections.${issue.field}`}
+                                name={`documentCorrections.${docIndex}.corrections.${issue.field}` as `documentCorrections.${number}.corrections.${string}`}
                                 render={({ field }) => (
                                   <FormItem>
                                     <FormControl>
