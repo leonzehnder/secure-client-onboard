@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { mockClients } from '../data/mockData';
 import { Client } from '../types';
@@ -102,8 +101,7 @@ const ClientSearch = () => {
   };
 
   const handleAddClient = () => {
-    // This would be implemented in a real app
-    console.log("Add new client");
+    navigate('/clients/add');
   };
 
   const handleRowClick = (clientId: string) => {

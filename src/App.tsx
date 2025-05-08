@@ -10,6 +10,7 @@ import Layout from "./components/layout/Layout";
 import Dashboard from "./pages/Dashboard";
 import ClientSearch from "./pages/ClientSearch";
 import ClientDetails from "./pages/ClientDetails";
+import AddClient from "./pages/AddClient";
 import DocumentUpload from "./pages/DocumentUpload";
 import Compliance from "./pages/Compliance";
 import Settings from "./pages/Settings";
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/" element={<Layout />}>
               <Route index element={<Dashboard />} />
               <Route path="clients" element={<ClientSearch />} />
+              <Route path="clients/add" element={<AddClient />} />
               <Route path="clients/:id" element={<ClientDetails />} />
               <Route path="documents/:clientId" element={<DocumentUpload />} />
               <Route path="compliance/:clientId" element={<Compliance />} />

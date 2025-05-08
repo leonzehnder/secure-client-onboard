@@ -1,4 +1,3 @@
-
 export type ClientStatus = 'pending' | 'complete' | 'flagged';
 export type DocumentType = 'passport' | 'idCard' | 'drivingLicense' | 'utilityBill' | 'bankStatement' | 'taxDocument' | 'other';
 export type DocumentStatus = 'verified' | 'pending' | 'rejected';
@@ -72,4 +71,30 @@ export interface ActivityLog {
   entityType: 'client' | 'document' | 'compliance';
   entityId: string;
   timestamp: string;
+}
+
+export interface Contract {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  requiresSignature: boolean;
+  defaultSelected?: boolean;
+}
+
+export interface ClientFormData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  dateOfBirth: string;
+  nationality: string;
+  address: {
+    street: string;
+    city: string;
+    state: string | null;
+    postalCode: string;
+    country: string;
+  };
+  selectedContracts: string[];
 }
