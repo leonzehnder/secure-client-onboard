@@ -1,13 +1,24 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { mockClients } from '../data/mockData';
-import { Client } from '../types';
+import { Client, Document, VerificationIssue } from '../types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/sonner';
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { useForm } from "react-hook-form";
 import {
   User,
   MapPin,
@@ -23,20 +34,39 @@ import {
   Edit,
   Save,
   Trash2,
-  ChevronLeft
+  ChevronLeft,
+  X
 } from 'lucide-react';
+
+type DocumentCorrection = {
+  documentId: string;
+  corrections: {
+    [field: string]: string;
+  };
+};
 
 const ClientDetails = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [client, setClient] = useState<Client | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isEditingDocuments, setIsEditingDocuments] = useState(false);
+  const [documentsWithIssues, setDocumentsWithIssues] = useState<Document[]>([]);
 
   useEffect(() => {
     // Simulate API fetch
     setTimeout(() => {
       const foundClient = mockClients.find(c => c.id === id);
       setClient(foundClient || null);
+      
+      if (foundClient) {
+        // Filter documents with verification issues
+        const docsWithIssues = foundClient.documents.filter(
+          doc => doc.verificationIssues && doc.verificationIssues.length > 0
+        );
+        setDocumentsWithIssues(docsWithIssues);
+      }
+      
       setLoading(false);
       
       if (!foundClient) {
@@ -45,6 +75,87 @@ const ClientDetails = () => {
       }
     }, 500);
   }, [id, navigate]);
+
+  // Initialize the form for document corrections
+  const form = useForm({
+    defaultValues: {
+      documentCorrections: [] as DocumentCorrection[]
+    }
+  });
+
+  // Setup form when documents with issues are loaded
+  useEffect(() => {
+    if (documentsWithIssues.length > 0) {
+      // Create initial corrections structure from issues
+      const initialCorrections = documentsWithIssues.map(doc => {
+        const corrections: { [field: string]: string } = {};
+        
+        if (doc.verificationIssues) {
+          doc.verificationIssues.forEach(issue => {
+            // Use the found value as the initial value for the correction
+            corrections[issue.field] = issue.found;
+          });
+        }
+        
+        return {
+          documentId: doc.id,
+          corrections
+        };
+      });
+      
+      form.reset({ documentCorrections: initialCorrections });
+    }
+  }, [documentsWithIssues, form]);
+
+  const handleEditDocuments = () => {
+    setIsEditingDocuments(true);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditingDocuments(false);
+  };
+
+  const onSubmitCorrections = (data: { documentCorrections: DocumentCorrection[] }) => {
+    // In a real app, this would send the corrections to an API
+    console.log('Submitting corrections:', data);
+    
+    // Simulate updating the client data
+    if (client) {
+      const updatedDocuments = client.documents.map(doc => {
+        const correctionData = data.documentCorrections.find(
+          correction => correction.documentId === doc.id
+        );
+        
+        if (correctionData) {
+          // Apply corrections to the document
+          const updatedDoc = { ...doc };
+          
+          if (updatedDoc.verificationIssues) {
+            // Update the "found" values with corrected values
+            updatedDoc.verificationIssues = updatedDoc.verificationIssues.map(issue => {
+              const correctedValue = correctionData.corrections[issue.field];
+              return correctedValue 
+                ? { ...issue, found: correctedValue } 
+                : issue;
+            });
+          }
+          
+          return updatedDoc;
+        }
+        
+        return doc;
+      });
+      
+      // Update the client with corrected documents
+      setClient({
+        ...client,
+        documents: updatedDocuments
+      });
+      
+      toast.success("Document corrections saved successfully");
+      setIsEditingDocuments(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -129,6 +240,84 @@ const ClientDetails = () => {
 
   const handleReviewCompliance = () => {
     navigate(`/compliance/${client.id}`);
+  };
+
+  // Render the document correction form
+  const renderDocumentCorrectionForm = () => {
+    if (documentsWithIssues.length === 0) {
+      return (
+        <div className="text-center py-6">
+          <CheckCircle className="h-12 w-12 text-banking-success mx-auto" />
+          <p className="mt-4 text-muted-foreground">No document issues to correct</p>
+        </div>
+      );
+    }
+
+    return (
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmitCorrections)} className="space-y-6">
+          <div className="grid grid-cols-1 gap-6">
+            {documentsWithIssues.map((doc, docIndex) => (
+              <Card key={doc.id} className="border-banking-warning/60">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center">
+                    <FileText className="h-5 w-5 mr-2" />
+                    {doc.type.replace(/([A-Z])/g, ' $1').replace(/^\w/, c => c.toUpperCase())}
+                    <span className="ml-2 text-sm text-muted-foreground">({doc.fileName})</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {doc.verificationIssues && doc.verificationIssues.map((issue, issueIndex) => {
+                      const fieldPath = `documentCorrections.${docIndex}.corrections.${issue.field}`;
+                      
+                      return (
+                        <div key={`${doc.id}-${issue.field}`} className="space-y-2">
+                          <Label>
+                            {issue.field.charAt(0).toUpperCase() + issue.field.slice(1)}
+                          </Label>
+                          <div className="flex items-center gap-2">
+                            <div className="flex-1">
+                              <Input
+                                {...form.register(fieldPath)}
+                                defaultValue={issue.found}
+                                className="w-full"
+                              />
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Expected: <span className="font-medium">{issue.expected}</span>
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          <div className="flex justify-end gap-3">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={handleCancelEdit}
+              className="flex items-center gap-2"
+            >
+              <X className="h-4 w-4" />
+              Cancel
+            </Button>
+            <Button 
+              type="submit" 
+              className="flex items-center gap-2"
+            >
+              <Save className="h-4 w-4" />
+              Save All Corrections
+            </Button>
+          </div>
+        </form>
+      </Form>
+    );
   };
 
   return (
@@ -249,6 +438,14 @@ const ClientDetails = () => {
           <TabsList>
             <TabsTrigger value="documents">Documents</TabsTrigger>
             <TabsTrigger value="compliance">Compliance</TabsTrigger>
+            {documentsWithIssues.length > 0 && (
+              <TabsTrigger value="corrections" className="relative">
+                Document Corrections
+                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-banking-warning text-xs text-white">
+                  {documentsWithIssues.length}
+                </span>
+              </TabsTrigger>
+            )}
           </TabsList>
           
           <TabsContent value="documents">
@@ -260,10 +457,26 @@ const ClientDetails = () => {
                     Client has {client.documents.length} document(s) uploaded
                   </CardDescription>
                 </div>
-                <Button onClick={handleUploadDocument}>
-                  <FileText className="h-4 w-4 mr-2" />
-                  Upload Document
-                </Button>
+                <div className="flex space-x-2">
+                  {documentsWithIssues.length > 0 && (
+                    <Button 
+                      variant="outline" 
+                      onClick={() => {
+                        handleEditDocuments();
+                        document.querySelector('[data-value="corrections"]')?.dispatchEvent(
+                          new MouseEvent('click', { bubbles: true })
+                        );
+                      }}
+                    >
+                      <Edit className="h-4 w-4 mr-2" />
+                      Fix Document Issues ({documentsWithIssues.length})
+                    </Button>
+                  )}
+                  <Button onClick={handleUploadDocument}>
+                    <FileText className="h-4 w-4 mr-2" />
+                    Upload Document
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
                 {client.documents.length > 0 ? (
@@ -413,6 +626,62 @@ const ClientDetails = () => {
               </CardFooter>
             </Card>
           </TabsContent>
+
+          {documentsWithIssues.length > 0 && (
+            <TabsContent value="corrections">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle>Document Corrections</CardTitle>
+                    <CardDescription>
+                      Fix validation issues across all documents in one place
+                    </CardDescription>
+                  </div>
+                  {!isEditingDocuments && (
+                    <Button onClick={handleEditDocuments}>
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit All Issues
+                    </Button>
+                  )}
+                </CardHeader>
+                <CardContent>
+                  {isEditingDocuments ? (
+                    renderDocumentCorrectionForm()
+                  ) : (
+                    <div className="space-y-4">
+                      {documentsWithIssues.map(doc => (
+                        <div key={doc.id} className="border rounded-md p-4">
+                          <div className="flex justify-between items-center">
+                            <h4 className="font-medium">{doc.type.replace(/([A-Z])/g, ' $1').replace(/^\w/, c => c.toUpperCase())}</h4>
+                            <Badge variant="outline" className="bg-banking-warning/10 text-banking-warning">
+                              {doc.verificationIssues?.length} {doc.verificationIssues?.length === 1 ? 'Issue' : 'Issues'}
+                            </Badge>
+                          </div>
+                          <div className="mt-2">
+                            <p className="text-sm text-muted-foreground">{doc.fileName}</p>
+                          </div>
+                          <div className="mt-3 pt-3 border-t">
+                            <ul className="space-y-2">
+                              {doc.verificationIssues?.map((issue, idx) => (
+                                <li key={idx} className="flex justify-between text-sm">
+                                  <span className="font-medium">{issue.field}:</span>
+                                  <span>
+                                    <span className="text-banking-danger">{issue.found}</span>
+                                    {' → '}
+                                    <span className="text-banking-success">{issue.expected}</span>
+                                  </span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )}
         </Tabs>
       </div>
     </div>
