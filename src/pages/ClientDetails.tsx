@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { mockClients } from '../data/mockData';
@@ -39,12 +38,17 @@ import {
   X
 } from 'lucide-react';
 
-type DocumentCorrection = {
+// Define a more specific type for document corrections to help TypeScript
+interface DocumentCorrection {
   documentId: string;
   corrections: {
     [field: string]: string;
   };
-};
+}
+
+interface DocumentCorrectionsFormValues {
+  documentCorrections: DocumentCorrection[];
+}
 
 const ClientDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -77,10 +81,10 @@ const ClientDetails = () => {
     }, 500);
   }, [id, navigate]);
 
-  // Initialize the form for document corrections
-  const form = useForm({
+  // Initialize the form for document corrections with proper typing
+  const form = useForm<DocumentCorrectionsFormValues>({
     defaultValues: {
-      documentCorrections: [] as DocumentCorrection[]
+      documentCorrections: []
     }
   });
 
@@ -116,7 +120,7 @@ const ClientDetails = () => {
     setIsEditingDocuments(false);
   };
 
-  const onSubmitCorrections = (data: { documentCorrections: DocumentCorrection[] }) => {
+  const onSubmitCorrections = (data: DocumentCorrectionsFormValues) => {
     // In a real app, this would send the corrections to an API
     console.log('Submitting corrections:', data);
     
@@ -270,10 +274,6 @@ const ClientDetails = () => {
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {doc.verificationIssues && doc.verificationIssues.map((issue, issueIndex) => {
-                      // This is the line causing the TypeScript error
-                      // We need to properly construct the field path for react-hook-form
-                      const fieldPath = `documentCorrections.${docIndex}.corrections.${issue.field}`;
-                      
                       return (
                         <div key={`${doc.id}-${issue.field}`} className="space-y-2">
                           <Label>
@@ -283,7 +283,7 @@ const ClientDetails = () => {
                             <div className="flex-1">
                               <FormField
                                 control={form.control}
-                                name={`documentCorrections.${docIndex}.corrections.${issue.field}` as const}
+                                name={`documentCorrections.${docIndex}.corrections.${issue.field}`}
                                 render={({ field }) => (
                                   <FormItem>
                                     <FormControl>
