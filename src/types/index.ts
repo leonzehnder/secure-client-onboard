@@ -1,8 +1,8 @@
-
 export type ClientStatus = 'pending' | 'complete' | 'flagged';
 export type DocumentType = 'passport' | 'idCard' | 'drivingLicense' | 'utilityBill' | 'bankStatement' | 'taxDocument' | 'other';
 export type DocumentStatus = 'verified' | 'pending' | 'rejected';
 export type ComplianceStatus = 'cleared' | 'flagged' | 'pending';
+export type OnboardingStage = 'application' | 'documents_pending' | 'verification' | 'compliance_check' | 'approved' | 'rejected';
 
 export interface Client {
   id: string;
@@ -17,6 +17,7 @@ export interface Client {
   createdAt: string;
   documents: Document[];
   compliance: Compliance;
+  onboardingStage?: OnboardingStage;
 }
 
 export interface Address {
@@ -114,4 +115,17 @@ export interface DocumentCorrection {
 
 export interface DocumentCorrectionsFormValues {
   documentCorrections: DocumentCorrection[];
+}
+
+export interface BatchDocumentCorrection {
+  documentId: string;
+  type: DocumentType;
+  fileName: string;
+  fields: {
+    [field: string]: {
+      expected: string;
+      found: string;
+      value: string;
+    }
+  };
 }

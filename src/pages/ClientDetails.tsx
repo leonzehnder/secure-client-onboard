@@ -1,8 +1,7 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { mockClients } from '../data/mockData';
-import { Client, Document, VerificationIssue, DocumentCorrection, DocumentCorrectionsFormValues } from '../types';
+import { Client, Document, VerificationIssue, DocumentCorrection, DocumentCorrectionsFormValues, BatchDocumentCorrection } from '../types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from '@/components/ui/badge';
@@ -38,6 +37,7 @@ import {
   ChevronLeft,
   X
 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
 const ClientDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -46,29 +46,57 @@ const ClientDetails = () => {
   const [loading, setLoading] = useState(true);
   const [isEditingDocuments, setIsEditingDocuments] = useState(false);
   const [documentsWithIssues, setDocumentsWithIssues] = useState<Document[]>([]);
+  const [batchCorrections, setBatchCorrections] = useState<BatchDocumentCorrection[]>([]);
+  const [batchEditDialogOpen, setBatchEditDialogOpen] = useState(false);
 
   useEffect(() => {
     // Simulate API fetch
     setTimeout(() => {
       const foundClient = mockClients.find(c => c.id === id);
-      setClient(foundClient || null);
       
       if (foundClient) {
+        // Add onboarding stage if not present (for demo/mockup only)
+        if (!foundClient.onboardingStage) {
+          foundClient.onboardingStage = determineOnboardingStage(foundClient);
+        }
+        
+        setClient(foundClient);
+        
         // Filter documents with verification issues
         const docsWithIssues = foundClient.documents.filter(
           doc => doc.verificationIssues && doc.verificationIssues.length > 0
         );
         setDocumentsWithIssues(docsWithIssues);
-      }
-      
-      setLoading(false);
-      
-      if (!foundClient) {
+        
+        // Initialize batch correction data
+        initializeBatchCorrections(docsWithIssues);
+      } else {
         toast.error("Client not found");
         navigate('/clients');
       }
+      
+      setLoading(false);
     }, 500);
   }, [id, navigate]);
+
+  // Helper function to determine onboarding stage
+  const determineOnboardingStage = (client: Client): OnboardingStage => {
+    if (client.status === 'complete') return 'approved';
+    if (client.status === 'flagged') return 'compliance_check';
+    
+    // Check if any documents are rejected
+    const hasRejectedDocuments = client.documents.some(doc => doc.status === 'rejected');
+    if (hasRejectedDocuments) return 'verification';
+    
+    // Check if there are missing documents
+    if (client.documents.length === 0) return 'application';
+    
+    // Check if all documents are verified
+    const allDocumentsVerified = client.documents.every(doc => doc.status === 'verified');
+    if (allDocumentsVerified) return 'compliance_check';
+    
+    return 'documents_pending';
+  };
 
   // Initialize the form for document corrections with proper typing
   const form = useForm<DocumentCorrectionsFormValues>({
@@ -101,12 +129,112 @@ const ClientDetails = () => {
     }
   }, [documentsWithIssues, form]);
 
+  // Initialize batch corrections data
+  const initializeBatchCorrections = (documents: Document[]) => {
+    const batchData: BatchDocumentCorrection[] = [];
+    
+    documents.forEach(doc => {
+      if (doc.verificationIssues && doc.verificationIssues.length > 0) {
+        const fields: {[field: string]: {expected: string, found: string, value: string}} = {};
+        
+        doc.verificationIssues.forEach(issue => {
+          fields[issue.field] = {
+            expected: issue.expected,
+            found: issue.found,
+            value: issue.found // Initial value is what was found
+          };
+        });
+        
+        batchData.push({
+          documentId: doc.id,
+          type: doc.type,
+          fileName: doc.fileName,
+          fields
+        });
+      }
+    });
+    
+    setBatchCorrections(batchData);
+  };
+
   const handleEditDocuments = () => {
     setIsEditingDocuments(true);
   };
 
   const handleCancelEdit = () => {
     setIsEditingDocuments(false);
+  };
+
+  const openBatchEditDialog = () => {
+    setBatchEditDialogOpen(true);
+  };
+
+  const closeBatchEditDialog = () => {
+    setBatchEditDialogOpen(false);
+  };
+
+  const handleBatchFieldChange = (docIndex: number, fieldName: string, value: string) => {
+    setBatchCorrections(prev => {
+      const updated = [...prev];
+      updated[docIndex].fields[fieldName].value = value;
+      return updated;
+    });
+  };
+
+  const handleSubmitBatchCorrections = () => {
+    // In a real app, this would send the corrections to an API
+    console.log('Submitting batch corrections:', batchCorrections);
+    
+    // Convert batch corrections to the format expected by the form
+    const formattedCorrections = batchCorrections.map(batch => {
+      const corrections: {[field: string]: string} = {};
+      
+      Object.entries(batch.fields).forEach(([field, data]) => {
+        corrections[field] = data.value;
+      });
+      
+      return {
+        documentId: batch.documentId,
+        corrections
+      };
+    });
+    
+    // Update client documents with corrections
+    if (client) {
+      const updatedDocuments = client.documents.map(doc => {
+        const correctionData = formattedCorrections.find(
+          correction => correction.documentId === doc.id
+        );
+        
+        if (correctionData) {
+          // Apply corrections to the document
+          const updatedDoc = { ...doc };
+          
+          if (updatedDoc.verificationIssues) {
+            // Update the "found" values with corrected values
+            updatedDoc.verificationIssues = updatedDoc.verificationIssues.map(issue => {
+              const correctedValue = correctionData.corrections[issue.field];
+              return correctedValue 
+                ? { ...issue, found: correctedValue } 
+                : issue;
+            });
+          }
+          
+          return updatedDoc;
+        }
+        
+        return doc;
+      });
+      
+      // Update the client with corrected documents
+      setClient({
+        ...client,
+        documents: updatedDocuments
+      });
+      
+      toast.success("Document corrections saved successfully");
+      setBatchEditDialogOpen(false);
+    }
   };
 
   const onSubmitCorrections = (data: DocumentCorrectionsFormValues) => {
@@ -196,6 +324,88 @@ const ClientDetails = () => {
       default:
         return null;
     }
+  };
+
+  const getOnboardingStageLabel = (stage?: OnboardingStage) => {
+    switch (stage) {
+      case 'application':
+        return 'Application Submitted';
+      case 'documents_pending':
+        return 'Documents Pending';
+      case 'verification':
+        return 'Verification in Progress';
+      case 'compliance_check':
+        return 'Compliance Check';
+      case 'approved':
+        return 'Approved';
+      case 'rejected':
+        return 'Rejected';
+      default:
+        return 'Unknown';
+    }
+  };
+
+  const getOnboardingStageColor = (stage?: OnboardingStage) => {
+    switch (stage) {
+      case 'application':
+        return 'bg-blue-500';
+      case 'documents_pending':
+        return 'bg-yellow-500';
+      case 'verification':
+        return 'bg-orange-500';
+      case 'compliance_check':
+        return 'bg-purple-500';
+      case 'approved':
+        return 'bg-green-500';
+      case 'rejected':
+        return 'bg-red-500';
+      default:
+        return 'bg-gray-500';
+    }
+  };
+
+  const renderOnboardingProgress = () => {
+    const stages: OnboardingStage[] = [
+      'application',
+      'documents_pending',
+      'verification', 
+      'compliance_check',
+      'approved'
+    ];
+    
+    const currentIndex = client.onboardingStage ? 
+      stages.indexOf(client.onboardingStage) : 
+      -1;
+    
+    return (
+      <div className="mt-4">
+        <div className="flex items-center justify-between">
+          {stages.map((stage, index) => (
+            <React.Fragment key={stage}>
+              <div className="flex flex-col items-center">
+                <div 
+                  className={`h-8 w-8 rounded-full flex items-center justify-center
+                    ${index <= currentIndex ? getOnboardingStageColor(stage) : 'bg-gray-200'} 
+                    text-white text-xs font-medium`}
+                >
+                  {index + 1}
+                </div>
+                <span className="text-xs text-center mt-1 max-w-[80px]">
+                  {getOnboardingStageLabel(stage)}
+                </span>
+              </div>
+              
+              {index < stages.length - 1 && (
+                <div 
+                  className={`h-1 flex-1 mx-1
+                    ${index < currentIndex ? getOnboardingStageColor(stages[index + 1]) : 'bg-gray-200'}`}
+                />
+              )}
+            </React.Fragment>
+          ))}
+        </div>
+      </div>
+    );
   };
 
   const getComplianceStatusBadge = (status: string) => {
@@ -321,6 +531,79 @@ const ClientDetails = () => {
     );
   };
 
+  // Render the batch document correction dialog
+  const renderBatchCorrectionDialog = () => {
+    return (
+      <Dialog open={batchEditDialogOpen} onOpenChange={setBatchEditDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Batch Edit Document Issues</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6 py-4">
+            {batchCorrections.map((doc, docIndex) => (
+              <Card key={doc.documentId} className="border-banking-warning/60">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center">
+                    <FileText className="h-5 w-5 mr-2" />
+                    {doc.type.replace(/([A-Z])/g, ' $1').replace(/^\w/, c => c.toUpperCase())}
+                    <span className="ml-2 text-sm text-muted-foreground">({doc.fileName})</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {Object.entries(doc.fields).map(([fieldName, fieldData]) => (
+                      <div key={`${doc.documentId}-${fieldName}`} className="space-y-2">
+                        <Label>
+                          {fieldName.charAt(0).toUpperCase() + fieldName.slice(1)}
+                        </Label>
+                        <div className="flex items-center gap-2">
+                          <div className="flex-1">
+                            <Input
+                              value={fieldData.value}
+                              onChange={(e) => handleBatchFieldChange(docIndex, fieldName, e.target.value)}
+                              className="w-full"
+                            />
+                            <div className="flex justify-between mt-1">
+                              <p className="text-xs text-muted-foreground">
+                                Expected: <span className="font-medium">{fieldData.expected}</span>
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                Found: <span className="font-medium">{fieldData.found}</span>
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={closeBatchEditDialog}
+              className="flex items-center gap-2"
+            >
+              <X className="h-4 w-4" />
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSubmitBatchCorrections} 
+              className="flex items-center gap-2"
+            >
+              <Save className="h-4 w-4" />
+              Save All Corrections
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center">
@@ -328,10 +611,17 @@ const ClientDetails = () => {
           <ChevronLeft className="h-4 w-4 mr-1" />
           Back
         </Button>
-        <h2 className="text-3xl font-bold tracking-tight">
-          {client.firstName} {client.lastName}
-          {getStatusBadge(client.status)}
-        </h2>
+        <div className="flex-1">
+          <h2 className="text-3xl font-bold tracking-tight">
+            {client.firstName} {client.lastName}
+            {getStatusBadge(client.status)}
+          </h2>
+          <div className="flex items-center mt-1">
+            <Badge className={`${getOnboardingStageColor(client.onboardingStage)}`}>
+              {getOnboardingStageLabel(client.onboardingStage)}
+            </Badge>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -432,6 +722,11 @@ const ClientDetails = () => {
                 </div>
               </div>
             </div>
+            
+            <div className="mt-8">
+              <h3 className="text-sm font-medium">Onboarding Progress</h3>
+              {renderOnboardingProgress()}
+            </div>
           </CardContent>
         </Card>
 
@@ -462,15 +757,11 @@ const ClientDetails = () => {
                   {documentsWithIssues.length > 0 && (
                     <Button 
                       variant="outline" 
-                      onClick={() => {
-                        handleEditDocuments();
-                        document.querySelector('[data-value="corrections"]')?.dispatchEvent(
-                          new MouseEvent('click', { bubbles: true })
-                        );
-                      }}
+                      onClick={openBatchEditDialog}
+                      className="flex items-center gap-2"
                     >
-                      <Edit className="h-4 w-4 mr-2" />
-                      Fix Document Issues ({documentsWithIssues.length})
+                      <Edit className="h-4 w-4 mr-1" />
+                      Fix All Document Issues ({documentsWithIssues.length})
                     </Button>
                   )}
                   <Button onClick={handleUploadDocument}>
@@ -685,6 +976,9 @@ const ClientDetails = () => {
           )}
         </Tabs>
       </div>
+
+      {/* Render the batch correction dialog */}
+      {renderBatchCorrectionDialog()}
     </div>
   );
 };
