@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { mockClients } from '../data/mockData';
 import { Client, Document, VerificationIssue, DocumentCorrection, DocumentCorrectionsFormValues, BatchDocumentCorrection } from '../types';
+import { OnboardingStage, getOnboardingStageLabel, getOnboardingStageColor } from '../types/OnboardingStage';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from '@/components/ui/badge';
