@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { mockClients } from '../data/mockData';
@@ -325,44 +324,6 @@ const ClientDetails = () => {
         );
       default:
         return null;
-    }
-  };
-
-  const getOnboardingStageLabel = (stage?: OnboardingStage) => {
-    switch (stage) {
-      case 'application':
-        return 'Application Submitted';
-      case 'documents_pending':
-        return 'Documents Pending';
-      case 'verification':
-        return 'Verification in Progress';
-      case 'compliance_check':
-        return 'Compliance Check';
-      case 'approved':
-        return 'Approved';
-      case 'rejected':
-        return 'Rejected';
-      default:
-        return 'Unknown';
-    }
-  };
-
-  const getOnboardingStageColor = (stage?: OnboardingStage) => {
-    switch (stage) {
-      case 'application':
-        return 'bg-blue-500';
-      case 'documents_pending':
-        return 'bg-yellow-500';
-      case 'verification':
-        return 'bg-orange-500';
-      case 'compliance_check':
-        return 'bg-purple-500';
-      case 'approved':
-        return 'bg-green-500';
-      case 'rejected':
-        return 'bg-red-500';
-      default:
-        return 'bg-gray-500';
     }
   };
 

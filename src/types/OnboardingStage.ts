@@ -1,5 +1,6 @@
 
-import { OnboardingStage } from './index';
+// Define the OnboardingStage type
+export type OnboardingStage = 'application' | 'documents_pending' | 'verification' | 'compliance_check' | 'approved' | 'rejected';
 
 export const onboardingStages: OnboardingStage[] = [
   'application',
