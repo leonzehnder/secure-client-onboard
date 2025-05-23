@@ -1,8 +1,25 @@
 
 import { useState } from 'react';
-import { MessageSquare, Plus, Search, Send } from 'lucide-react';
+import { MessageSquare, Plus, Search, Send, Settings } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 
 type MessageType = {
   id: string;
@@ -18,14 +35,7 @@ type ConversationType = {
 };
 
 const ChatPage = () => {
-  const [messages, setMessages] = useState<MessageType[]>([
-    {
-      id: '1',
-      content: 'How can I assist you today?\n\nAsk me about financial regulations, client onboarding processes, or help with document analysis.',
-      sender: 'ai',
-      timestamp: new Date()
-    }
-  ]);
+  const [messages, setMessages] = useState<MessageType[]>([]);
   
   const [conversations, setConversations] = useState<ConversationType[]>([
     {
@@ -42,6 +52,20 @@ const ChatPage = () => {
   
   const [input, setInput] = useState('');
   const [activeSection, setActiveSection] = useState<'recent' | null>('recent');
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [apiKey, setApiKey] = useState('');
+  const [selectedModel, setSelectedModel] = useState('gpt-4o');
+
+  const startNewConversation = () => {
+    setMessages([]);
+    // Create a new conversation
+    const newConversation: ConversationType = {
+      id: Date.now().toString(),
+      title: 'New Conversation',
+      lastUpdated: new Date()
+    };
+    setConversations([newConversation, ...conversations]);
+  };
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,13 +86,29 @@ const ChatPage = () => {
     setTimeout(() => {
       const aiResponse: MessageType = {
         id: (Date.now() + 1).toString(),
-        content: 'This is a simulated response from CoreGPT. In a production environment, this would connect to an LLM API.',
+        content: 'This is a simulated response from CoreGPT. In a production environment, this would connect to an LLM API using the configured API key and model.',
         sender: 'ai',
         timestamp: new Date()
       };
       
+      // Update the first conversation with the new title based on user input
+      if (conversations.length > 0 && messages.length === 0) {
+        const updatedConversations = [...conversations];
+        updatedConversations[0] = {
+          ...updatedConversations[0],
+          title: input.length > 30 ? input.substring(0, 30) + '...' : input,
+          lastUpdated: new Date()
+        };
+        setConversations(updatedConversations);
+      }
+      
       setMessages(prev => [...prev, aiResponse]);
     }, 1000);
+  };
+
+  const saveSettings = () => {
+    // Here you would typically save these settings to localStorage or a backend
+    setSettingsOpen(false);
   };
 
   return (
@@ -79,22 +119,13 @@ const ChatPage = () => {
           <h2 className="text-lg font-semibold mb-4">Conversations</h2>
           
           <div className="flex items-center justify-between mb-4">
-            <button className="flex items-center space-x-1 text-sm py-1 px-2 rounded bg-[#1c2d47] hover:bg-[#263c5a] w-full">
+            <button 
+              onClick={startNewConversation} 
+              className="flex items-center space-x-1 text-sm py-1 px-2 rounded bg-[#1c2d47] hover:bg-[#263c5a] w-full"
+            >
               <span className="flex-1 text-left">NEW CONVERSATION</span>
               <Plus size={16} />
             </button>
-          </div>
-          
-          <div className="mb-4">
-            <div className="flex items-center space-x-2 bg-[#1c2d47] rounded p-2">
-              <Button variant="ghost" size="icon" className="h-6 w-6 text-gray-400">
-                <Plus size={16} />
-              </Button>
-              <div className="flex items-center space-x-2 p-1 w-full text-gray-300">
-                <MessageSquare size={16} />
-                <span className="text-sm">New Conversation</span>
-              </div>
-            </div>
           </div>
           
           <div className="flex items-center space-x-2 mb-4">
@@ -147,38 +178,88 @@ const ChatPage = () => {
       
       {/* Chat Main Content */}
       <div className="flex-1 flex flex-col h-full bg-white">
-        <div className="flex-1 overflow-y-auto p-6">
-          {messages.map((message) => (
-            <div 
-              key={message.id} 
-              className="mb-6 max-w-3xl mx-auto"
-            >
-              <div className="flex items-start">
-                {message.sender === 'ai' && (
-                  <div className="bg-banking-primary text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 mt-1 flex-shrink-0">
-                    AI
-                  </div>
-                )}
-                <div 
-                  className={`p-4 rounded-lg ${
-                    message.sender === 'user' 
-                      ? 'bg-banking-primary text-white ml-auto' 
-                      : 'bg-gray-50 border border-gray-200'
-                  }`}
-                >
-                  <p className="whitespace-pre-line">{message.content}</p>
-                  <div className="mt-2 text-xs opacity-70">
-                    {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </div>
+        {/* Chat header with settings button */}
+        <div className="border-b p-4 flex justify-between items-center">
+          <h2 className="font-medium">Chat</h2>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <Settings className="h-5 w-5" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80">
+              <div className="space-y-4">
+                <h3 className="font-medium">API Settings</h3>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">API Key</label>
+                  <Input 
+                    type="password"
+                    value={apiKey}
+                    onChange={(e) => setApiKey(e.target.value)}
+                    placeholder="Enter your API key"
+                  />
                 </div>
-                {message.sender === 'user' && (
-                  <div className="bg-gray-200 rounded-full w-8 h-8 flex items-center justify-center ml-3 mt-1 flex-shrink-0">
-                    You
-                  </div>
-                )}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Model</label>
+                  <Select value={selectedModel} onValueChange={setSelectedModel}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a model" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="gpt-4o-mini">GPT-4o Mini</SelectItem>
+                      <SelectItem value="gpt-4o">GPT-4o</SelectItem>
+                      <SelectItem value="gpt-4.5-preview">GPT-4.5 Preview</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button className="w-full" onClick={saveSettings}>Save Settings</Button>
               </div>
+            </PopoverContent>
+          </Popover>
+        </div>
+        
+        <div className="flex-1 overflow-y-auto p-6">
+          {messages.length === 0 ? (
+            <div className="h-full flex flex-col items-center justify-center text-gray-500">
+              <MessageSquare className="h-12 w-12 mb-3 opacity-50" />
+              <h3 className="text-lg font-medium mb-1">No messages yet</h3>
+              <p className="text-sm text-center max-w-sm">
+                Start a conversation by typing a message below.
+              </p>
             </div>
-          ))}
+          ) : (
+            messages.map((message) => (
+              <div 
+                key={message.id} 
+                className="mb-6 max-w-3xl mx-auto"
+              >
+                <div className="flex items-start">
+                  {message.sender === 'ai' && (
+                    <div className="bg-banking-primary text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 mt-1 flex-shrink-0">
+                      AI
+                    </div>
+                  )}
+                  <div 
+                    className={`p-4 rounded-lg ${
+                      message.sender === 'user' 
+                        ? 'bg-banking-primary text-white ml-auto' 
+                        : 'bg-gray-50 border border-gray-200'
+                    }`}
+                  >
+                    <p className="whitespace-pre-line">{message.content}</p>
+                    <div className="mt-2 text-xs opacity-70">
+                      {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                  </div>
+                  {message.sender === 'user' && (
+                    <div className="bg-gray-200 rounded-full w-8 h-8 flex items-center justify-center ml-3 mt-1 flex-shrink-0">
+                      You
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))
+          )}
         </div>
 
         <div className="border-t p-4 bg-white">
