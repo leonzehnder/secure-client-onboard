@@ -4,9 +4,9 @@ import TopNavbar from './TopNavbar';
 
 const ChatLayout = () => {
   return (
-    <div className="min-h-screen flex flex-col w-full">
+    <div className="h-screen flex flex-col w-full overflow-hidden">
       <TopNavbar />
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex overflow-hidden">
         <Outlet />
       </div>
     </div>
