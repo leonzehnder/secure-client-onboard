@@ -67,11 +67,11 @@ const Sidebar = () => {
       </div>
       
       <nav className="p-3">
-        <SidebarLink to="/kyc" icon={Home} label="Dashboard" />
-        <SidebarLink to="/kyc/clients" icon={Users} label="Clients" />
-        <SidebarLink to="/kyc/documents/all" icon={FileText} label="Documents" />
-        <SidebarLink to="/kyc/compliance/all" icon={ShieldCheck} label="Compliance" />
-        <SidebarLink to="/kyc/settings" icon={Settings} label="Settings" />
+        <SidebarLink to="/" icon={Home} label="Dashboard" />
+        <SidebarLink to="/clients" icon={Users} label="Clients" />
+        <SidebarLink to="/documents/all" icon={FileText} label="Documents" />
+        <SidebarLink to="/compliance/all" icon={ShieldCheck} label="Compliance" />
+        <SidebarLink to="/settings" icon={Settings} label="Settings" />
       </nav>
     </aside>
   );
