@@ -11,6 +11,14 @@ export default {
 	],
 	prefix: "",
 	theme: {
+		screens: {
+			'xs': '480px',
+			'sm': '640px',
+			'md': '768px',
+			'lg': '1024px',
+			'xl': '1280px',
+			'2xl': '1536px',
+		},
 		container: {
 			center: true,
 			padding: '2rem',
@@ -27,7 +35,17 @@ export default {
 				foreground: 'hsl(var(--foreground))',
 				primary: {
 					DEFAULT: 'hsl(var(--primary))',
-					foreground: 'hsl(var(--primary-foreground))'
+					foreground: 'hsl(var(--primary-foreground))',
+					50: '#eef2fa',
+					100: '#d4dff0',
+					200: '#b7c8e7',
+					300: '#90abd8',
+					400: '#6f8fc8',
+					500: '#4f72b8',
+					600: '#3d5a9c',
+					700: '#2d437d',
+					800: '#1e2d5e',
+					900: '#0d1e40'
 				},
 				secondary: {
 					DEFAULT: 'hsl(var(--secondary))',
@@ -58,7 +76,7 @@ export default {
                     primary: '#0A2463',
                     secondary: '#3E92CC',
                     accent: '#1E5F8C',
-                    light: '#EBF2FA',
+                    light: '#FFFFFF',
                     warning: '#FFB347',
                     danger: '#FF6B6B',
                     success: '#4CAF50',

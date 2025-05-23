@@ -5,7 +5,7 @@
 
 @layer base {
   :root {
-    --background: 213 100% 98%;
+    --background: 0 0% 100%;
     --foreground: 222 84% 5%;
 
     --card: 0 0% 100%;
@@ -97,6 +97,10 @@
 
 /* Banking application custom styles */
 @layer components {
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
   .kyc-status-pending {
     @apply text-banking-warning bg-banking-warning/10 border border-banking-warning/30;
   }

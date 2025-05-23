@@ -66,7 +66,7 @@ const Compliance = () => {
         
         if (!foundClient && clientId !== 'all') {
           toast.error("Client not found");
-          navigate('/clients');
+          navigate('/agents/dashboard/clients');
         }
       }
     }, 500);
@@ -121,7 +121,7 @@ const Compliance = () => {
     toast.success("Compliance data saved");
     
     if (client) {
-      navigate(`/clients/${client.id}`);
+      navigate(`/agents/dashboard/clients/${client.id}`);
     } else {
       // Clear form
       setPepStatus('pending');
@@ -176,7 +176,7 @@ const Compliance = () => {
         <Button 
           variant="ghost" 
           className="mr-2" 
-          onClick={() => client ? navigate(`/clients/${client.id}`) : navigate('/clients')}
+          onClick={() => client ? navigate(`/agents/dashboard/clients/${client.id}`) : navigate('/agents/dashboard/clients')}
         >
           <ChevronLeft className="h-4 w-4 mr-1" />
           Back
@@ -389,7 +389,7 @@ const Compliance = () => {
                 <p className="text-sm text-muted-foreground mt-2">
                   Verify document authenticity and check for discrepancies across different document types.
                 </p>
-                <Button className="mt-4" disabled={!client} onClick={() => client && navigate(`/documents/${client.id}`)}>
+                <Button className="mt-4" disabled={!client} onClick={() => client && navigate(`/agents/dashboard/documents/${client.id}`)}>
                   View Client Documents
                 </Button>
               </div>

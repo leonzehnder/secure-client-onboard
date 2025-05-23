@@ -69,7 +69,7 @@ const Dashboard = () => {
   };
 
   const handleClientClick = (id: string) => {
-    navigate(`/clients/${id}`);
+    navigate(`/agents/dashboard/clients/${id}`);
   };
 
   return (
@@ -77,7 +77,7 @@ const Dashboard = () => {
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
         <div>
-          <Button onClick={() => navigate('/clients/add')}>
+          <Button onClick={() => navigate('/agents/dashboard/clients/add')}>
             Add New Client
           </Button>
         </div>
@@ -251,7 +251,7 @@ const Dashboard = () => {
                   <CardTitle>Clients Needing Attention</CardTitle>
                   <CardDescription>Clients with pending status or document issues</CardDescription>
                 </div>
-                <Button onClick={() => navigate('/clients')}>
+                <Button onClick={() => navigate('/agents/dashboard/clients')}>
                   View All Clients
                 </Button>
               </div>

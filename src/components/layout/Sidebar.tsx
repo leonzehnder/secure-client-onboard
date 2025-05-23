@@ -1,4 +1,3 @@
-
 import { NavLink } from 'react-router-dom';
 import { 
   ChevronLeft, 
@@ -38,7 +37,7 @@ const Sidebar = () => {
   return (
     <aside 
       className={cn(
-        'fixed top-0 left-0 h-screen bg-banking-primary text-white z-10 transition-all',
+        'fixed left-0 h-[calc(100vh-48px)] top-[48px] bg-banking-primary text-white z-10 transition-all',
         isOpen ? 'w-64' : 'w-16'
       )}
     >
@@ -67,11 +66,11 @@ const Sidebar = () => {
       </div>
       
       <nav className="p-3">
-        <SidebarLink to="/" icon={Home} label="Dashboard" />
-        <SidebarLink to="/clients" icon={Users} label="Clients" />
-        <SidebarLink to="/documents/all" icon={FileText} label="Documents" />
-        <SidebarLink to="/compliance/all" icon={ShieldCheck} label="Compliance" />
-        <SidebarLink to="/settings" icon={Settings} label="Settings" />
+        <SidebarLink to="/agents/dashboard" icon={Home} label="Dashboard" />
+        <SidebarLink to="/agents/dashboard/clients" icon={Users} label="Clients" />
+        <SidebarLink to="/agents/dashboard/documents/all" icon={FileText} label="Documents" />
+        <SidebarLink to="/agents/dashboard/compliance/all" icon={ShieldCheck} label="Compliance" />
+        <SidebarLink to="/agents/dashboard/settings" icon={Settings} label="Settings" />
       </nav>
     </aside>
   );

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { mockClients } from '../data/mockData';
@@ -43,7 +42,7 @@ const DocumentUpload = () => {
         
         if (!foundClient && clientId !== 'all') {
           toast.error("Client not found");
-          navigate('/clients');
+          navigate('/agents/dashboard/clients');
         }
       }
     }, 500);
@@ -83,7 +82,7 @@ const DocumentUpload = () => {
       toast.success("Document uploaded successfully!");
       
       if (client) {
-        navigate(`/clients/${client.id}`);
+        navigate(`/agents/dashboard/clients/${client.id}`);
       } else {
         // Clear form
         setFileSelected(null);
@@ -105,7 +104,7 @@ const DocumentUpload = () => {
         <Button 
           variant="ghost" 
           className="mr-2" 
-          onClick={() => client ? navigate(`/clients/${client.id}`) : navigate('/clients')}
+          onClick={() => client ? navigate(`/agents/dashboard/clients/${client.id}`) : navigate('/agents/dashboard/clients')}
         >
           <ChevronLeft className="h-4 w-4 mr-1" />
           Back
@@ -160,7 +159,7 @@ const DocumentUpload = () => {
                       </SelectContent>
                     </Select>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Or <Link to="/clients" className="text-banking-primary underline">search for a client</Link>
+                      Or <Link to="/agents/dashboard/clients" className="text-banking-primary underline">search for a client</Link>
                     </p>
                   </div>
                 )}
@@ -270,7 +269,7 @@ const DocumentUpload = () => {
               <Button 
                 type="button" 
                 variant="outline" 
-                onClick={() => client ? navigate(`/clients/${client.id}`) : navigate('/clients')}
+                onClick={() => client ? navigate(`/agents/dashboard/clients/${client.id}`) : navigate('/agents/dashboard/clients')}
               >
                 Cancel
               </Button>

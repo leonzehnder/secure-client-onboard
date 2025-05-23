@@ -73,7 +73,7 @@ const ClientDetails = () => {
         initializeBatchCorrections(docsWithIssues);
       } else {
         toast.error("Client not found");
-        navigate('/clients');
+        navigate('/agents/dashboard/clients');
       }
       
       setLoading(false);
@@ -297,7 +297,7 @@ const ClientDetails = () => {
         <AlertTriangle className="h-12 w-12 text-banking-warning" />
         <h2 className="text-2xl font-semibold">Client Not Found</h2>
         <p className="text-muted-foreground">The client you're looking for doesn't exist or has been removed.</p>
-        <Button onClick={() => navigate('/clients')}>Back to Client Search</Button>
+        <Button onClick={() => navigate('/agents/dashboard/clients')}>Back to Client Search</Button>
       </div>
     );
   }
@@ -402,11 +402,11 @@ const ClientDetails = () => {
   };
 
   const handleUploadDocument = () => {
-    navigate(`/documents/${client.id}`);
+    navigate(`/agents/dashboard/documents/${client.id}`);
   };
 
   const handleReviewCompliance = () => {
-    navigate(`/compliance/${client.id}`);
+    navigate(`/agents/dashboard/compliance/${client.id}`);
   };
 
   // Render the document correction form
@@ -570,7 +570,7 @@ const ClientDetails = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center">
-        <Button variant="ghost" className="mr-2" onClick={() => navigate('/clients')}>
+        <Button variant="ghost" className="mr-2" onClick={() => navigate('/agents/dashboard/clients')}>
           <ChevronLeft className="h-4 w-4 mr-1" />
           Back
         </Button>

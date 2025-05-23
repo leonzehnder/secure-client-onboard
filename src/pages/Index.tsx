@@ -7,7 +7,7 @@ const Index = () => {
 
   // Automatically redirect to the dashboard
   useEffect(() => {
-    navigate('/');
+    navigate('/agents');
   }, [navigate]);
 
   return null;

@@ -101,11 +101,11 @@ const ClientSearch = () => {
   };
 
   const handleAddClient = () => {
-    navigate('/clients/add');
+    navigate('/agents/dashboard/clients/add');
   };
 
   const handleRowClick = (clientId: string) => {
-    navigate(`/clients/${clientId}`);
+    navigate(`/agents/dashboard/clients/${clientId}`);
   };
 
   return (

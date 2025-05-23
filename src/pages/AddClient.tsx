@@ -117,7 +117,7 @@ const AddClient = () => {
     });
     
     // Navigate back to client list
-    navigate('/clients');
+    navigate('/agents/dashboard/clients');
   };
 
   // Function to handle file selection
@@ -351,7 +351,7 @@ const AddClient = () => {
                 <Button 
                   type="button" 
                   variant="outline" 
-                  onClick={() => navigate('/clients')}
+                  onClick={() => navigate('/agents/dashboard/clients')}
                 >
                   Cancel
                 </Button>
