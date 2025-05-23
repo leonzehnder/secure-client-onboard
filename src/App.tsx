@@ -35,10 +35,19 @@ const App = () => (
             </Route>
             
             {/* Agent selection route */}
-            <Route path="/agents" element={<AgentsPage />} />
+            <Route path="/agents" element={<ChatLayout />}>
+              <Route index element={<AgentsPage />} />
+            </Route>
+
+            <Route path="/documents" element={<ChatLayout />}>
+              <Route index element={<NotFound />} />
+            </Route>
+            
+            {/* Default redirect to agents */}
+            <Route path="/" element={<Navigate to="/agents" replace />} />
             
             {/* KYC Banking agent routes */}
-            <Route path="/" element={<Layout />}>
+            <Route path="/kyc" element={<Layout />}>
               <Route index element={<Dashboard />} />
               <Route path="clients" element={<ClientSearch />} />
               <Route path="clients/add" element={<AddClient />} />

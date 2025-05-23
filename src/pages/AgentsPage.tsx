@@ -15,7 +15,7 @@ const agentCards = [
     title: 'KYC Banking',
     description: 'Client onboarding & identity verification',
     icon: <ShieldCheck size={24} className="text-banking-primary" />,
-    path: '/',
+    path: '/kyc',
     color: 'bg-banking-primary/10'
   },
   {

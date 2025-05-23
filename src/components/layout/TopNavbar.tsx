@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 const TopNavbar = () => {
   const location = useLocation();
   const isActive = (path: string) => {
-    if (path === '/chat' && (location.pathname === '/chat' || location.pathname === '/')) {
+    if (path === '/chat' && (location.pathname === '/chat')) {
       return true;
     }
     return location.pathname.startsWith(path);
@@ -32,10 +32,10 @@ const TopNavbar = () => {
           </Link>
           
           <Link 
-            to="/"
+            to="/agents"
             className={cn(
               "flex items-center px-3 py-2 rounded-md transition-colors",
-              isActive('/agents') || (location.pathname === '/' && !isActive('/chat'))
+              isActive('/agents') || location.pathname === '/'
                 ? "bg-gray-100 text-banking-primary" 
                 : "text-gray-600 hover:text-banking-primary hover:bg-gray-50"
             )}
