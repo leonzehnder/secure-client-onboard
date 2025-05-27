@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   FileSearch, 
@@ -12,7 +11,6 @@ import {
   History,
   Plus,
   X,
-  MessageSquare,
   Send
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -48,7 +46,7 @@ const DocumentAnalysis = () => {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
     {
       id: '1',
-      content: "Hello! I'm your Document Analysis Assistant. I can help you understand how to extract insights from your documents, suggest analysis approaches, and guide you through the process. What would you like to analyze today?",
+      content: "Hello! I'm your Document Analysis Assistant. Describe what you want to analyze and I'll help guide you through the process.",
       role: 'assistant',
       timestamp: new Date().toISOString()
     }
@@ -187,72 +185,12 @@ const DocumentAnalysis = () => {
         {/* Main Content */}
         <div className="flex-1 p-6">
           <Tabs defaultValue="upload" className="w-full">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="upload">Upload & Extract</TabsTrigger>
-              <TabsTrigger value="chat">AI Assistant</TabsTrigger>
               <TabsTrigger value="analyze">Analyze</TabsTrigger>
               <TabsTrigger value="insights">Insights</TabsTrigger>
               <TabsTrigger value="export">Export</TabsTrigger>
             </TabsList>
-
-            <TabsContent value="chat" className="mt-6">
-              <Card className="h-[calc(100vh-240px)] flex flex-col">
-                <div className="p-4 border-b border-gray-200">
-                  <div className="flex items-center space-x-2">
-                    <MessageSquare className="h-5 w-5 text-blue-600" />
-                    <h3 className="font-medium">AI Analysis Assistant</h3>
-                  </div>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Describe what you want to analyze and get personalized recommendations
-                  </p>
-                </div>
-                
-                {/* Chat Messages */}
-                <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                  {chatMessages.map((message) => (
-                    <div key={message.id} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                      <div className={`max-w-[80%] p-3 rounded-lg ${
-                        message.role === 'user' 
-                          ? 'bg-blue-600 text-white' 
-                          : 'bg-gray-100 text-gray-900'
-                      }`}>
-                        <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                        <p className="text-xs mt-1 opacity-70">
-                          {new Date(message.timestamp).toLocaleTimeString()}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                  {isChatLoading && (
-                    <div className="flex justify-start">
-                      <div className="bg-gray-100 text-gray-900 p-3 rounded-lg max-w-[80%]">
-                        <div className="flex items-center space-x-2">
-                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Chat Input */}
-                <form onSubmit={handleChatSubmit} className="p-4 border-t border-gray-200">
-                  <div className="flex space-x-2">
-                    <Input
-                      value={chatInput}
-                      onChange={(e) => setChatInput(e.target.value)}
-                      placeholder="Describe what you want to analyze or ask for help..."
-                      className="flex-1"
-                      disabled={isChatLoading}
-                    />
-                    <Button type="submit" disabled={!chatInput.trim() || isChatLoading}>
-                      <Send className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </form>
-              </Card>
-            </TabsContent>
 
             <TabsContent value="upload" className="mt-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -356,6 +294,58 @@ const DocumentAnalysis = () => {
                   </div>
                 </Card>
               </div>
+
+              {/* Analysis Assistant Chat */}
+              <Card className="mt-6">
+                <div className="p-4 border-b border-gray-200">
+                  <h3 className="font-medium">Analysis Assistant</h3>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Describe what you want to analyze and get personalized recommendations
+                  </p>
+                </div>
+                
+                {/* Chat Messages */}
+                <div className="p-4 max-h-60 overflow-y-auto space-y-3">
+                  {chatMessages.map((message) => (
+                    <div key={message.id} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`max-w-[80%] p-3 rounded-lg text-sm ${
+                        message.role === 'user' 
+                          ? 'bg-blue-600 text-white' 
+                          : 'bg-gray-100 text-gray-900'
+                      }`}>
+                        <p className="whitespace-pre-wrap">{message.content}</p>
+                      </div>
+                    </div>
+                  ))}
+                  {isChatLoading && (
+                    <div className="flex justify-start">
+                      <div className="bg-gray-100 text-gray-900 p-3 rounded-lg max-w-[80%]">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Chat Input */}
+                <form onSubmit={handleChatSubmit} className="p-4 border-t border-gray-200">
+                  <div className="flex space-x-2">
+                    <Input
+                      value={chatInput}
+                      onChange={(e) => setChatInput(e.target.value)}
+                      placeholder="Describe what you want to analyze or ask for help..."
+                      className="flex-1"
+                      disabled={isChatLoading}
+                    />
+                    <Button type="submit" disabled={!chatInput.trim() || isChatLoading}>
+                      <Send className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </form>
+              </Card>
             </TabsContent>
 
             <TabsContent value="analyze" className="mt-6">
