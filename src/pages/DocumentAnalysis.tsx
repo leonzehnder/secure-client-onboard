@@ -11,7 +11,9 @@ import {
   Settings,
   History,
   Plus,
-  X
+  X,
+  MessageSquare,
+  Send
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -31,11 +33,28 @@ interface AnalysisResult {
   timestamp: string;
 }
 
+interface ChatMessage {
+  id: string;
+  content: string;
+  role: 'user' | 'assistant';
+  timestamp: string;
+}
+
 const DocumentAnalysis = () => {
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [analysisResults, setAnalysisResults] = useState<AnalysisResult[]>([]);
   const [activeAnalysis, setActiveAnalysis] = useState<AnalysisResult | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
+    {
+      id: '1',
+      content: "Hello! I'm your Document Analysis Assistant. I can help you understand how to extract insights from your documents, suggest analysis approaches, and guide you through the process. What would you like to analyze today?",
+      role: 'assistant',
+      timestamp: new Date().toISOString()
+    }
+  ]);
+  const [chatInput, setChatInput] = useState('');
+  const [isChatLoading, setIsChatLoading] = useState(false);
 
   const handleFileUpload = (files: FileList | null) => {
     if (files) {
@@ -72,6 +91,34 @@ const DocumentAnalysis = () => {
       setActiveAnalysis(result);
       setIsAnalyzing(false);
     }, 2000);
+  };
+
+  const handleChatSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!chatInput.trim() || isChatLoading) return;
+
+    const userMessage: ChatMessage = {
+      id: Date.now().toString(),
+      content: chatInput,
+      role: 'user',
+      timestamp: new Date().toISOString()
+    };
+
+    setChatMessages(prev => [...prev, userMessage]);
+    setChatInput('');
+    setIsChatLoading(true);
+
+    // Simulate AI response
+    setTimeout(() => {
+      const assistantMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        content: "I understand you want to analyze that type of data. Here are some recommendations:\n\n1. For financial documents, focus on extracting key metrics like revenue, expenses, and trends\n2. Use table detection to identify structured data\n3. Apply entity recognition to find important names, dates, and amounts\n4. Consider sentiment analysis for qualitative insights\n\nWould you like me to help you set up specific analysis parameters for your document?",
+        role: 'assistant',
+        timestamp: new Date().toISOString()
+      };
+      setChatMessages(prev => [...prev, assistantMessage]);
+      setIsChatLoading(false);
+    }, 1500);
   };
 
   return (
@@ -140,12 +187,72 @@ const DocumentAnalysis = () => {
         {/* Main Content */}
         <div className="flex-1 p-6">
           <Tabs defaultValue="upload" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="upload">Upload & Extract</TabsTrigger>
+              <TabsTrigger value="chat">AI Assistant</TabsTrigger>
               <TabsTrigger value="analyze">Analyze</TabsTrigger>
               <TabsTrigger value="insights">Insights</TabsTrigger>
               <TabsTrigger value="export">Export</TabsTrigger>
             </TabsList>
+
+            <TabsContent value="chat" className="mt-6">
+              <Card className="h-[calc(100vh-240px)] flex flex-col">
+                <div className="p-4 border-b border-gray-200">
+                  <div className="flex items-center space-x-2">
+                    <MessageSquare className="h-5 w-5 text-blue-600" />
+                    <h3 className="font-medium">AI Analysis Assistant</h3>
+                  </div>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Describe what you want to analyze and get personalized recommendations
+                  </p>
+                </div>
+                
+                {/* Chat Messages */}
+                <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                  {chatMessages.map((message) => (
+                    <div key={message.id} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`max-w-[80%] p-3 rounded-lg ${
+                        message.role === 'user' 
+                          ? 'bg-blue-600 text-white' 
+                          : 'bg-gray-100 text-gray-900'
+                      }`}>
+                        <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                        <p className="text-xs mt-1 opacity-70">
+                          {new Date(message.timestamp).toLocaleTimeString()}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                  {isChatLoading && (
+                    <div className="flex justify-start">
+                      <div className="bg-gray-100 text-gray-900 p-3 rounded-lg max-w-[80%]">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Chat Input */}
+                <form onSubmit={handleChatSubmit} className="p-4 border-t border-gray-200">
+                  <div className="flex space-x-2">
+                    <Input
+                      value={chatInput}
+                      onChange={(e) => setChatInput(e.target.value)}
+                      placeholder="Describe what you want to analyze or ask for help..."
+                      className="flex-1"
+                      disabled={isChatLoading}
+                    />
+                    <Button type="submit" disabled={!chatInput.trim() || isChatLoading}>
+                      <Send className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </form>
+              </Card>
+            </TabsContent>
 
             <TabsContent value="upload" className="mt-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
