@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -17,9 +18,9 @@ import DocumentUpload from "./pages/DocumentUpload";
 import Compliance from "./pages/Compliance";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+import DocumentAnalysis from "./pages/DocumentAnalysis";
 
 // Placeholder agent pages
-import DocumentAnalysis from "./pages/placeholder/DocumentAnalysis";
 import DeepResearch from "./pages/placeholder/DeepResearch";
 import DataCleaning from "./pages/placeholder/DataCleaning";
 import FraudDetection from "./pages/placeholder/FraudDetection";
