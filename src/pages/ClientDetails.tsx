@@ -11,6 +11,7 @@ import { toast } from '@/components/ui/sonner';
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
 import {
   Form,
   FormControl,
@@ -36,7 +37,10 @@ import {
   Save,
   Trash2,
   ChevronLeft,
-  X
+  X,
+  FileCheck,
+  Search,
+  UserCheck
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
@@ -335,37 +339,107 @@ const ClientDetails = () => {
       'compliance_check',
       'approved'
     ];
+
+    const stageConfig = {
+      'application': { icon: FileText, label: 'Application', description: 'Initial application submitted' },
+      'documents_pending': { icon: FileCheck, label: 'Documents', description: 'Document collection' },
+      'verification': { icon: Search, label: 'Verification', description: 'Document verification' },
+      'compliance_check': { icon: Shield, label: 'Compliance', description: 'Regulatory checks' },
+      'approved': { icon: UserCheck, label: 'Approved', description: 'Onboarding complete' }
+    };
     
     const currentIndex = client.onboardingStage ? 
       stages.indexOf(client.onboardingStage) : 
       -1;
+
+    const progressPercentage = currentIndex >= 0 ? ((currentIndex + 1) / stages.length) * 100 : 0;
     
     return (
-      <div className="mt-4">
-        <div className="flex items-center justify-between">
-          {stages.map((stage, index) => (
-            <React.Fragment key={stage}>
-              <div className="flex flex-col items-center">
-                <div 
-                  className={`h-8 w-8 rounded-full flex items-center justify-center
-                    ${index <= currentIndex ? getOnboardingStageColor(stage) : 'bg-gray-200'} 
-                    text-white text-xs font-medium`}
-                >
-                  {index + 1}
+      <div className="bg-white border rounded-lg p-6 shadow-sm">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">Onboarding Progress</h3>
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-gray-600">
+              {currentIndex + 1} of {stages.length} Complete
+            </span>
+            <Badge variant="outline" className="text-xs">
+              {Math.round(progressPercentage)}%
+            </Badge>
+          </div>
+        </div>
+
+        <div className="mb-6">
+          <Progress value={progressPercentage} className="h-3" />
+        </div>
+
+        <div className="grid grid-cols-5 gap-4">
+          {stages.map((stage, index) => {
+            const config = stageConfig[stage];
+            const Icon = config.icon;
+            const isCompleted = index <= currentIndex;
+            const isCurrent = index === currentIndex;
+            
+            return (
+              <div key={stage} className="text-center">
+                <div className="relative mb-3">
+                  <div 
+                    className={`
+                      w-12 h-12 rounded-full flex items-center justify-center mx-auto border-2 transition-all duration-300
+                      ${isCompleted 
+                        ? 'bg-banking-primary border-banking-primary text-white shadow-md' 
+                        : isCurrent
+                        ? 'bg-blue-50 border-banking-primary text-banking-primary'
+                        : 'bg-gray-50 border-gray-200 text-gray-400'
+                      }
+                    `}
+                  >
+                    <Icon size={20} />
+                  </div>
+                  {isCompleted && (
+                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
+                      <CheckCircle size={12} className="text-white" />
+                    </div>
+                  )}
                 </div>
-                <span className="text-xs text-center mt-1 max-w-[80px]">
-                  {getOnboardingStageLabel(stage)}
-                </span>
+                
+                <div className="space-y-1">
+                  <h4 className={`text-sm font-medium ${isCompleted ? 'text-gray-900' : 'text-gray-500'}`}>
+                    {config.label}
+                  </h4>
+                  <p className="text-xs text-gray-400 leading-tight">
+                    {config.description}
+                  </p>
+                </div>
+
+                {isCurrent && (
+                  <div className="mt-2">
+                    <Badge variant="outline" className="text-xs bg-blue-50 border-banking-primary text-banking-primary">
+                      Current
+                    </Badge>
+                  </div>
+                )}
               </div>
-              
-              {index < stages.length - 1 && (
-                <div 
-                  className={`h-1 flex-1 mx-1
-                    ${index < currentIndex ? getOnboardingStageColor(stages[index + 1]) : 'bg-gray-200'}`}
-                />
-              )}
-            </React.Fragment>
-          ))}
+            );
+          })}
+        </div>
+
+        <div className="mt-6 pt-4 border-t border-gray-100">
+          <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center gap-2 text-gray-600">
+              <Calendar size={16} />
+              <span>Started: {new Date(client.createdAt).toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric' 
+              })}</span>
+            </div>
+            {client.onboardingStage === 'approved' && (
+              <div className="flex items-center gap-2 text-green-600">
+                <CheckCircle size={16} />
+                <span className="font-medium">Completed</span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     );
@@ -685,13 +759,12 @@ const ClientDetails = () => {
                 </div>
               </div>
             </div>
-            
-            <div className="mt-8">
-              <h3 className="text-sm font-medium">Onboarding Progress</h3>
-              {renderOnboardingProgress()}
-            </div>
           </CardContent>
         </Card>
+
+        <div className="md:col-span-3">
+          {renderOnboardingProgress()}
+        </div>
 
         <Tabs defaultValue="documents" className="col-span-3">
           <TabsList>
