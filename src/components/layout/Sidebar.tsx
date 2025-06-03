@@ -1,3 +1,4 @@
+
 import { NavLink } from 'react-router-dom';
 import { 
   ChevronLeft, 
@@ -20,8 +21,8 @@ const SidebarLink = ({ to, icon: Icon, label }: { to: string, icon: any, label: 
       className={({ isActive }) => cn(
         'flex items-center p-3 rounded-lg my-1 transition-all',
         isActive 
-          ? 'bg-sidebar-accent text-sidebar-accent-foreground' 
-          : 'text-sidebar-foreground/80 hover:bg-sidebar-accent/50',
+          ? 'bg-[#1a3659] text-white' 
+          : 'text-gray-300 hover:bg-[#152040]',
         !isOpen && 'justify-center'
       )}
     >
@@ -37,25 +38,11 @@ const Sidebar = () => {
   return (
     <aside 
       className={cn(
-        'fixed left-0 h-[calc(100vh-48px)] top-[48px] bg-banking-primary text-white z-10 transition-all',
+        'fixed left-0 h-[calc(100vh-48px)] top-[48px] bg-[#0b1425] text-white z-10 transition-all',
         isOpen ? 'w-64' : 'w-16'
       )}
     >
-      <div className="flex items-center justify-between p-4 border-b border-white/10">
-        {isOpen ? (
-          <div className="flex items-center">
-            <div className="rounded-full bg-white w-8 h-8 flex items-center justify-center text-banking-primary font-bold">
-              KB
-            </div>
-            <span className="ml-2 font-semibold">KYC Banking</span>
-          </div>
-        ) : (
-          <div className="w-full flex justify-center">
-            <div className="rounded-full bg-white w-8 h-8 flex items-center justify-center text-banking-primary font-bold">
-              KB
-            </div>
-          </div>
-        )}
+      <div className="flex items-center justify-end p-4 border-b border-gray-800">
         <button 
           onClick={toggle} 
           className="text-white/80 hover:text-white"
