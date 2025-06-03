@@ -30,7 +30,7 @@ const Header = () => {
               <User size={18} />
             </div>
             <div className="hidden md:block">
-              <p className="text-sm font-medium">John Smith</p>
+              <p className="text-sm font-medium">Léon Zehnder</p>
               <p className="text-xs text-muted-foreground">Compliance Officer</p>
             </div>
           </div>
