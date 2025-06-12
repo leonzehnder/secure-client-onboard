@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -7,7 +8,8 @@ import {
   DatabaseBackup,
   ShieldAlert,
   TrendingUp,
-  ArrowRight
+  ArrowRight,
+  Building2
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 
@@ -54,6 +56,12 @@ const AgentSelection = () => {
       title: "Document Analysis Agent",
       description: "Extract and analyze information from documents. Process contracts, forms, and other text-based documents.",
       path: "/agents/document-analysis"
+    },
+    {
+      icon: <Building2 className="h-6 w-6" />,
+      title: "Alternative Investment Agent",
+      description: "AI-powered document intelligence for alternative investments. Automate data extraction from private equity and fund documents.",
+      path: "/agents/alternative-investment"
     },
     {
       icon: <Microscope className="h-6 w-6" />,

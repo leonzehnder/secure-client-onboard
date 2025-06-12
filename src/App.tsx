@@ -61,6 +61,7 @@ const App = () => (
               
               {/* Other Agent Routes */}
               <Route path="/agents/document-analysis" element={<DocumentAnalysis />} />
+              <Route path="/agents/alternative-investment" element={<AlternativeInvestment />} />
               <Route path="/agents/research" element={<DeepResearch />} />
               <Route path="/agents/data-cleaning" element={<DataCleaning />} />
               <Route path="/agents/fraud-detection" element={<FraudDetection />} />
