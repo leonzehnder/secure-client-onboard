@@ -19,6 +19,7 @@ import Compliance from "./pages/Compliance";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import DocumentAnalysis from "./pages/DocumentAnalysis";
+import AlternativeInvestment from "./pages/AlternativeInvestment";
 
 // Placeholder agent pages
 import DeepResearch from "./pages/placeholder/DeepResearch";
